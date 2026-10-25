@@ -1,0 +1,39 @@
+# Python test bytecode.
+__pycache__/
+
+# macOS metadata.
+.DS_Store
+
+# Secrets. Only sanitized .env.example files belong in Git.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Downloaded extension dependencies, not their reproducible lockfiles.
+node_modules/
+
+# Pi credentials, downloads and machine-specific runtime state.
+# Match both root .pi/ and .pi/ inside any Stow package.
+**/.pi/agent/auth.json
+**/.pi/agent/sessions/
+**/.pi/agent/tasks/
+**/.pi/agent/install/
+**/.pi/agent/npm/
+**/.pi/agent/git/
+**/.pi/agent/models-store.json
+**/.pi/agent/crashes.json
+**/.pi/agent/trust.json
+# Local presentation preferences.
+**/.pi/agent/calm
+**/.pi/agent/calm.*.tmp
+# Bridge authentication state.
+**/.pi/agent/antigravity-bridge/sessions.json
+**/.pi/agent/antigravity-bridge/agy-mcp-*/
+**/.pi/extensions-data/
+
+# Diagnostics and accidental backups. Store real migration backups outside Git.
+*.log
+*.bak
+backups/

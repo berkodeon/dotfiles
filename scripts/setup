@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+target_dir="${DOTFILES_TARGET:-$HOME}"
+mode=preview
+case "${1:-}" in
+  --apply) mode=apply; shift ;;
+  --remove) mode=remove; shift ;;
+  --help|-h)
+    echo 'Usage: bash scripts/setup [--apply|--remove] [pi-core|pi-ui ...]'
+    echo 'Default: preview pi-core. --remove previews and then removes owned links.'
+    echo 'DOTFILES_TARGET selects an existing target directory (default: your home).'
+    exit 0 ;;
+esac
+if [ "$#" -eq 0 ]; then set -- pi-core; fi
+for package in "$@"; do
+  case "$package" in
+    pi-core|pi-ui) ;;
+    *) echo "Unknown package: $package" >&2; exit 2 ;;
+  esac
+done
+if ! command -v stow >/dev/null 2>&1; then
+  echo 'GNU Stow is required. On macOS: brew bundle install --file=Brewfile' >&2
+  exit 1
+fi
+if [ ! -d "$target_dir" ]; then
+  echo "Target must already exist: $target_dir" >&2
+  exit 1
+fi
+
+# Stow 2.4.1 has no switch to disable rc files. Refuse hidden options such as --adopt.
+for rc_file in "$HOME/.stowrc" "$repo_dir/.stowrc"; do
+  if [ -e "$rc_file" ] || [ -L "$rc_file" ]; then
+    echo "Review existing Stow defaults before using this wrapper: $rc_file" >&2
+    exit 1
+  fi
+done
+cd -- "$repo_dir"
+args=(--dir="$repo_dir/stow" --target="$target_dir" --no-folding --verbose)
+action=--stow
+if [ "$mode" = remove ]; then action=--delete; fi
+stow "${args[@]}" --simulate "$action" "$@"
+if [ "$mode" != preview ]; then
+  stow "${args[@]}" "$action" "$@"
+else
+  echo 'Preview only. Use --apply with the same package names to create links.'
+fi
